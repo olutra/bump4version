@@ -2431,30 +2431,81 @@ def test_always_increment(tmpdir):
 
     main(["counter"])
     assert (
-               "android {\n"
-               "    defaultConfig {\n"
-               "        versionCode 20\n"
-               '        versionName "15.4"\n'
-               "    }\n"
-               "}"
-           ) == tmpdir.join(version_file_name).read()
+        "android {\n"
+        "    defaultConfig {\n"
+        "        versionCode 20\n"
+        '        versionName "15.4"\n'
+        "    }\n"
+        "}"
+    ) == tmpdir.join(version_file_name).read()
 
     main(["major"])
     assert (
-               "android {\n"
-               "    defaultConfig {\n"
-               "        versionCode 21\n"
-               '        versionName "16.0"\n'
-               "    }\n"
-               "}"
-           ) == tmpdir.join(version_file_name).read()
+        "android {\n"
+        "    defaultConfig {\n"
+        "        versionCode 21\n"
+        '        versionName "16.0"\n'
+        "    }\n"
+        "}"
+    ) == tmpdir.join(version_file_name).read()
 
     main(["minor"])
     assert (
-               "android {\n"
-               "    defaultConfig {\n"
-               "        versionCode 22\n"
-               '        versionName "16.1"\n'
-               "    }\n"
-               "}"
-           ) == tmpdir.join(version_file_name).read()
+        "android {\n"
+        "    defaultConfig {\n"
+        "        versionCode 22\n"
+        '        versionName "16.1"\n'
+        "    }\n"
+        "}"
+    ) == tmpdir.join(version_file_name).read()
+
+
+def test_always_increment_invalid_value(tmpdir):
+    tmpdir.chdir()
+    tmpdir.join(".bumpversion.cfg").write(
+        dedent(
+            r"""
+            [bumpversion]
+            current_version = 11
+            parse = (?P<major>\d+)
+            serialize = {major}
+
+            [bumpversion:part:major]
+            always_increment = truethy
+        """
+        )
+    )
+
+    with pytest.raises(ValueError):
+        main(["major"])
+
+
+def test_always_increment_and_independent_error(tmpdir):
+    version_file_name = "version"
+    tmpdir.join(version_file_name).write("1.555")
+    tmpdir.chdir()
+    tmpdir.join(".bumpversion.cfg").write(
+        dedent(
+            r"""
+            [bumpversion]
+            current_version = 1.555
+            parse = (?P<major>\d+).(?P<build>\d+)
+            serialize = {major}.{build}
+
+            """
+            f"[bumpversion:file:{version_file_name}]"
+            """
+            search = {current_version}
+            replace = {new_version}
+
+            [bumpversion:part:build]
+            always_increment = False
+            independent = True
+        """
+        )
+    )
+
+    with pytest.raises(SystemExit) as e:
+        main(["build"])
+
+    assert e.value.code == 1
