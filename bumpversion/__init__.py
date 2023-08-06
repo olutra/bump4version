@@ -1,3 +1,3 @@
 __version__ = "1.0.2-dev"
 __license__ = "MIT"
-__title__ = "bumpversion"
+__title__ = __name__

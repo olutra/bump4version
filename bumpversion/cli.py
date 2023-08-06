@@ -180,6 +180,7 @@ def _parse_arguments_phase_1(original_args):
     )
     root_parser.add_argument(
         "--verbose",
+        "-v",
         action="count",
         default=0,
         help="Print verbose logging to stderr",
@@ -225,6 +226,7 @@ def _setup_logging(show_list, verbose):
 
 
 def _determine_vcs_usability():
+    # TODO: skip if VCS features are not enabled through command line of config file?
     vcs_info = {}
     for vcs in VCS:
         if vcs.is_usable():
