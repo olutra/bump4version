@@ -1,6 +1,6 @@
 import pytest
 
-from bumpversion.functions import NumericFunction, ValuesFunction
+from bump4version.functions import NumericFunction, ValuesFunction
 
 
 # NumericFunction

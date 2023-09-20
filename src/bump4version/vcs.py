@@ -6,7 +6,7 @@ from abc import ABC
 from tempfile import NamedTemporaryFile
 from typing import List
 
-from bumpversion.exceptions import (
+from .exceptions import (
     MercurialDoesNotSupportSignedTagsException,
     WorkingDirectoryIsDirtyException,
 )
@@ -146,7 +146,7 @@ class Git(BaseVCS):
         """
         Create a tag of the new_version in VCS.
 
-        If only name is given, bumpversion uses a lightweight tag.
+        If only name is given, bump4version uses a lightweight tag.
         Otherwise, it utilizes an annotated tag.
         """
         command = ["git", "tag", name]

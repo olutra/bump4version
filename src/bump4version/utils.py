@@ -3,7 +3,7 @@ import os
 from argparse import _AppendAction
 from difflib import unified_diff
 
-from bumpversion.exceptions import VersionNotFoundException
+from .exceptions import VersionNotFoundException
 
 
 logger = logging.getLogger(__name__)
@@ -148,4 +148,4 @@ class ConfiguredFile:
         return self.path
 
     def __repr__(self):
-        return "<bumpversion.ConfiguredFile:{}>".format(self.path)
+        return "<bump4version.ConfiguredFile:{}>".format(self.path)
