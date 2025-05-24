@@ -2392,3 +2392,120 @@ def test_independent_falsy_value_in_config_does_not_bump_independently(tmpdir):
 
     main(['major'])
     assert '3.0.0-0' == tmpdir.join("VERSION").read()
+
+
+def test_always_increment(tmpdir):
+    version_file_name = "build.gradle"
+    tmpdir.join(version_file_name).write(
+        "android {\n"
+        "    defaultConfig {\n"
+        "        versionCode 19\n"
+        '        versionName "15.4"\n'
+        "    }\n"
+        "}"
+    )
+    tmpdir.chdir()
+    tmpdir.join(".bumpversion.cfg").write(
+        dedent(
+            r"""
+            [bumpversion]
+            current_version = '15.4#19'
+            parse = '(?P<major>\d+).(?P<minor>\d+)\#(?P<counter>\d+)'
+            serialize = '{major}.{minor}#{counter}'
+
+            [bumpversion:file (versionName):build.gradle]
+            serialize = {major}.{minor}
+            search = versionName "{current_version}"
+            replace = versionName "{new_version}"
+
+            [bumpversion:file (versionCode):build.gradle]
+            serialize = {counter}
+            search = versionCode {current_version}
+            replace = versionCode {new_version}
+
+            [bumpversion:part:counter]
+            always_increment = True
+        """
+        )
+    )
+
+    main(["counter"])
+    assert (
+        "android {\n"
+        "    defaultConfig {\n"
+        "        versionCode 20\n"
+        '        versionName "15.4"\n'
+        "    }\n"
+        "}"
+    ) == tmpdir.join(version_file_name).read()
+
+    main(["major"])
+    assert (
+        "android {\n"
+        "    defaultConfig {\n"
+        "        versionCode 21\n"
+        '        versionName "16.0"\n'
+        "    }\n"
+        "}"
+    ) == tmpdir.join(version_file_name).read()
+
+    main(["minor"])
+    assert (
+        "android {\n"
+        "    defaultConfig {\n"
+        "        versionCode 22\n"
+        '        versionName "16.1"\n'
+        "    }\n"
+        "}"
+    ) == tmpdir.join(version_file_name).read()
+
+
+def test_always_increment_invalid_value(tmpdir):
+    tmpdir.chdir()
+    tmpdir.join(".bumpversion.cfg").write(
+        dedent(
+            r"""
+            [bumpversion]
+            current_version = 11
+            parse = (?P<major>\d+)
+            serialize = {major}
+
+            [bumpversion:part:major]
+            always_increment = truethy
+        """
+        )
+    )
+
+    with pytest.raises(ValueError):
+        main(["major"])
+
+
+def test_always_increment_and_independent_error(tmpdir):
+    version_file_name = "version"
+    tmpdir.join(version_file_name).write("1.555")
+    tmpdir.chdir()
+    tmpdir.join(".bumpversion.cfg").write(
+        dedent(
+            r"""
+            [bumpversion]
+            current_version = 1.555
+            parse = (?P<major>\d+).(?P<build>\d+)
+            serialize = {major}.{build}
+
+            """
+            f"[bumpversion:file:{version_file_name}]"
+            """
+            search = {current_version}
+            replace = {new_version}
+
+            [bumpversion:part:build]
+            always_increment = False
+            independent = True
+        """
+        )
+    )
+
+    with pytest.raises(SystemExit) as e:
+        main(["build"])
+
+    assert e.value.code == 1

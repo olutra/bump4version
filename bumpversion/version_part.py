@@ -20,6 +20,7 @@ class PartConfiguration:
     function_cls = NumericFunction
 
     def __init__(self, *args, **kwds):
+        self.always_increment = kwds.pop("always_increment", False)
         self.function = self.function_cls(*args, **kwds)
 
     @property
@@ -80,6 +81,10 @@ class VersionPart:
     def is_independent(self):
         return self.config.independent
 
+    @property
+    def always_increment(self):
+        return self.config.always_increment
+
     def __format__(self, format_spec):
         return self.value
 
@@ -121,13 +126,19 @@ class Version:
         for label in order:
             if label not in self._values:
                 continue
+
             if label == part_name:
-                new_values[label] = self._values[label].bump()
+                new_value = self._values[label].bump()
                 bumped = True
-            elif bumped and not self._values[label].is_independent():
-                new_values[label] = self._values[label].null()
+            elif self._values[label].is_independent():
+                new_value = self._values[label].copy()
+            elif self._values[label].always_increment:
+                new_value = self._values[label].bump()
+            elif bumped:
+                new_value = self._values[label].null()
             else:
-                new_values[label] = self._values[label].copy()
+                new_value = self._values[label].copy()
+            new_values[label] = new_value
 
         if not bumped:
             raise InvalidVersionPartException("No part named %r" % part_name)
