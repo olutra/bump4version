@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bump4version"
 version = "1.0.0-dev.2"
-description = "A CLI tool for manageing source code version information"
+description = "A CLI tool for managing source code version information"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.7"
@@ -37,7 +37,7 @@ test = [
 
 [project.scripts]
 bump4version = "bump4version.cli:main"
-bumpversion = "bump4version.cli:main"
+bv = "bump4version.cli:main"
 
 [project.urls]
 "Homepage" = "https://github.com/olutra/bump4version"
