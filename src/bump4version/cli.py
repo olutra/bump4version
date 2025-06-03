@@ -3,7 +3,6 @@ import glob
 import io
 import itertools
 import logging
-import os
 import re
 import sys
 import warnings
@@ -15,6 +14,7 @@ from configparser import (
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
+from pathlib import Path
 
 from . import __title__, __version__
 from .exceptions import (
@@ -46,17 +46,17 @@ DESCRIPTION = "{}: v{} (using Python v{})".format(
 VCS = [Git, Mercurial]
 
 # detect either
-# bump4version:part:value
-# bump4version:file:value
-# bump4version:file(suffix):value
-# bump4version:file ( suffix with spaces):value
+# bumpversion:part:value
+# bumpversion:file:value
+# bumpversion:file(suffix):value
+# bumpversion:file ( suffix with spaces):value
 RE_DETECT_SECTION_TYPE = re.compile(
-    r"^bump4version:"
+    r"^bumpversion:"
     r"((?P<file>file|glob)(\s*\(\s*(?P<file_suffix>[^\):]+)\)?)?|(?P<part>part)):"
     r"(?P<value>.+)",
 )
 
-BUMP3VERSION_VCS_BRANCH_NAME = "BUMP3VERSION_VCS_BRANCH_NAME"
+_BUMP4VERSION_VCS_BRANCH_NAME = "BUMP4VERSION_VCS_BRANCH_NAME"
 
 logger_list = logging.getLogger("bump4version.list")
 logger = logging.getLogger(__name__)
@@ -178,7 +178,7 @@ def _parse_arguments_phase_1(original_args):
     if len(positionals[1:]) > 2:
         warnings.warn(
             "Giving multiple files on the command line will be deprecated, "
-            "please use [bump4version:file:...] in a config file.",
+            "please use [bumpversion:file:...] in a config file.",
             PendingDeprecationWarning,
             stacklevel=2,
         )
@@ -188,7 +188,7 @@ def _parse_arguments_phase_1(original_args):
         metavar="FILE",
         default=argparse.SUPPRESS,
         required=False,
-        help="Config file to read most of the variables from (default: .bump4version.cfg)",
+        help="Config file to read most of the variables from (default: .bumpversion.cfg)",
     )
     root_parser.add_argument(
         "--verbose",
@@ -244,7 +244,7 @@ def _determine_vcs_usability():
 
             # ToDo: make without exception
             with suppress(NotImplementedError):
-                vcs_info[BUMP3VERSION_VCS_BRANCH_NAME] = vcs.get_branch_name()
+                vcs_info[_BUMP4VERSION_VCS_BRANCH_NAME] = vcs.get_branch_name()
     return vcs_info
 
 
@@ -258,21 +258,31 @@ def _determine_current_version(vcs_info):
 def _determine_config_file(explicit_config):
     if explicit_config:
         return explicit_config
-    if not os.path.exists(".bump4version.cfg") and os.path.exists("setup.cfg"):
-        return "setup.cfg"
-    return ".bump4version.cfg"
+
+    bump4version_cfg_path = Path(".bump4version.cfg")
+    bumpversion_cfg_path = Path(".bumpversion.cfg")
+    setup_cfg_path = Path("setup.cfg")
+
+    if not bump4version_cfg_path.exists() and not bumpversion_cfg_path.exists() and setup_cfg_path.exists():
+        cfg_path = setup_cfg_path
+    elif bump4version_cfg_path.exists():
+        cfg_path = bump4version_cfg_path
+    else:
+        cfg_path = bumpversion_cfg_path
+
+    return cfg_path.name
 
 
 def _load_configuration(config_file, explicit_config, defaults, vcs_info):
     # setup.cfg supports interpolation - for compatibility we must do the same.
-    if os.path.basename(config_file) == "setup.cfg":
+    if Path(config_file).name == "setup.cfg":
         config = ConfigParser("")
     else:
         config = RawConfigParser("")
     # don't transform keys to lowercase (which would be the default)
     config.optionxform = lambda option: option
-    config.add_section("bump4version")
-    config_file_exists = os.path.exists(config_file)
+    config.add_section("bumpversion")
+    config_file_exists = Path(config_file).exists()
 
     if not config_file_exists:
         message = "Could not read config file at {}".format(config_file)
@@ -293,18 +303,18 @@ def _load_configuration(config_file, explicit_config, defaults, vcs_info):
     log_config = io.StringIO()
     config.write(log_config)
 
-    if config.has_option("bump4version", "files"):
+    if config.has_option("bumpversion", "files"):
         warnings.warn(
-            "'files =' configuration will be deprecated, please use [bump4version:file:...]",
+            "'files =' configuration will be deprecated, please use [bumpversion:file:...]",
             PendingDeprecationWarning,
             stacklevel=2,
         )
 
-    defaults.update(dict(config.items("bump4version")))
+    defaults.update(dict(config.items("bumpversion")))
 
     for listvaluename in ("serialize",):
         try:
-            value = config.get("bump4version", listvaluename)
+            value = config.get("bumpversion", listvaluename)
             defaults[listvaluename] = list(
                 filter(None, (x.strip() for x in value.splitlines()))
             )
@@ -314,7 +324,7 @@ def _load_configuration(config_file, explicit_config, defaults, vcs_info):
     for boolvaluename in ("commit", "tag", "dry_run"):
         try:
             defaults[boolvaluename] = config.getboolean(
-                "bump4version", boolvaluename
+                "bumpversion", boolvaluename
             )
         except NoOptionError:
             pass  # no default value then ;)
@@ -340,7 +350,7 @@ def _load_configuration(config_file, explicit_config, defaults, vcs_info):
                 if _type == "branch":
                     ThisVersionPartConfiguration = partial(
                         VCSBranchPartConfiguration,
-                        current_branch=vcs_info.get(BUMP3VERSION_VCS_BRANCH_NAME),
+                        current_branch=vcs_info.get(_BUMP4VERSION_VCS_BRANCH_NAME),
                     )
             elif "values" in section_config:
                 section_config["values"] = list(
@@ -654,16 +664,16 @@ def _replace_version_in_files(files, current_version, new_version, dry_run, cont
 
 
 def _log_list(config, new_version):
-    config.set("bump4version", "new_version", new_version)
-    for key, value in config.items("bump4version"):
+    config.set("bumpversion", "new_version", new_version)
+    for key, value in config.items("bumpversion"):
         logger_list.info("%s=%s", key, value)
-    config.remove_option("bump4version", "new_version")
+    config.remove_option("bumpversion", "new_version")
 
 
 def _update_config_file(
         config, config_file, config_newlines, config_file_exists, new_version, dry_run,
 ):
-    config.set("bump4version", "current_version", new_version)
+    config.set("bumpversion", "current_version", new_version)
     new_config = io.StringIO()
     try:
         write_to_config_file = (not dry_run) and config_file_exists

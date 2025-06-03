@@ -2,29 +2,35 @@ FROM debian:bullseye-slim
 
 RUN apt update && apt-get install -y --no-install-recommends git-core mercurial
 
-# Install build environment for pyenv
-RUN apt update && apt install -y --no-install-recommends build-essential libssl-dev zlib1g-dev \
-                libbz2-dev libreadline-dev libsqlite3-dev curl ca-certificates \
-                libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+# The installer requires curl (and certificates) to download the release archive
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
 
-# Install pyenv
-ENV PYENV_ROOT="/.pyenv" \
-    PATH="/.pyenv/bin:/.pyenv/shims:$PATH"
-RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+RUN curl -L https://astral.sh/uv/0.7.9/install.sh | bash
 
-RUN echo 3.7 3.8 3.9 3.10 3.11 pypy3.7 pypy3.8 pypy3.9 pypy3.10| xargs -P 4 -n 1 pyenv install
-RUN pyenv global 3.7 3.8 3.9 3.10 3.11 pypy3.7 pypy3.8 pypy3.9 pypy3.10
+ENV PATH="/root/.local/bin/:$PATH"
 
-RUN python -m pip install nox
+ENV UV_LINK_MODE=copy
 
-RUN git config --global user.email "bumpversion_test@example.org"
-RUN git config --global user.name "Bumpversion Test"
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv python install 3.8 && \
+    uv python install 3.9 && \
+    uv python install 3.10 && \
+    uv python install 3.11 && \
+    uv python install 3.12 && \
+    uv python install 3.13 && \
+    uv python install pypy3.8 && \
+    uv python install pypy3.9 && \
+    uv python install pypy3.10 && \
+    uv python install pypy3.11 && \
+    uv tool install nox
 
-ENV PYTHONDONTWRITEBYTECODE = 1  # prevent *.pyc files
+# prevent *.pyc files
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV NOX_DEFAULT_VENV_BACKEND=uv
 
 WORKDIR /code
 COPY noxfile.py .
-RUN python -m nox --install-only
+RUN nox --install-only
 
 COPY . .
-ENTRYPOINT ["python", "-m", "nox", "-R"]
+ENTRYPOINT ["nox", "-R"]

@@ -3,7 +3,9 @@
 * [bumpversion](https://pypi.org/project/bumpversion/) is the original project
   off of which `bump2version` was forked.  We'll be merging
   back with them at some point (issue [#86](https://github.com/c4urself/bump2version/issues/86)).
-  
+
+* [bump-my-version](https://github.com/callowayproject/bump-my-version)
+
 * [tbump](https://github.com/tankerhq/tbump) is a complete rewrite, with a nicer UX and additional features, like running commands (aka hooks) before or after the bump. It only works for Git repos right now.
 
 * [ADVbumpversion](https://github.com/andrivet/advbumpversion) is another fork.

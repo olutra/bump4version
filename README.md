@@ -1,13 +1,13 @@
-# bump2version
+# bump4version
 
-[![image](https://img.shields.io/pypi/v/bump2version.svg)](https://pypi.org/project/bump2version/)
-[![image](https://img.shields.io/pypi/l/bump2version.svg)](https://pypi.org/project/bump2version/)
-[![image](https://img.shields.io/pypi/pyversions/bump2version.svg)](https://pypi.org/project/bump2version/)
-[![GitHub Actions](https://github.com/c4urself/bump2version/workflows/CI/badge.svg)](https://github.com/c4urself/bump2version/actions)
+[![image](https://img.shields.io/pypi/v/bump4version.svg)](https://pypi.org/project/bump4version/)
+[![image](https://img.shields.io/pypi/l/bump4version.svg)](https://pypi.org/project/bump4version/)
+[![image](https://img.shields.io/pypi/pyversions/bump4version.svg)](https://pypi.org/project/bump4version/)
 
 ## NOTE
 
-This is a maintained fork of the excellent [bumpversion project](https://github.com/peritus/bumpversion).
+This is a maintained fork of the excellent [bumpversion](https://github.com/peritus/bumpversion) 
+and [bump2version](https://github.com/c4urself/bump2version) projects.
 
 ## Overview
 
@@ -23,22 +23,17 @@ commits and tags:
 * just handles text files, so it's not specific to any programming language
 * supports Python 3 and PyPy3
 
-If you want to use Python 2, use `pip>=9` and you'll get the last supported version,
-or pin `bump2version<1`.
-
 ## Alternatives
 
-If bump2version does not fully suit your needs, you could take a look
+If bump4version does not fully suit your needs, you could take a look
 at other tools doing similar or related tasks:
-[ALTERNATIVES.md](https://github.com/c4urself/bump2version/blob/master/RELATED.md).
+[ALTERNATIVES.md](https://github.com/olutra/bump4version/blob/stable/RELATED.md).
 
 ## Installation
 
 You can download and install the latest version of this software from the Python package index (PyPI) as follows:
 
-    pip install --upgrade bump2version
-
-**NOTE: `pip install bumpversion` now installs the latest bump2version!**
+    pip install --upgrade bump4version
 
 ## Changelog
 
@@ -46,12 +41,12 @@ Please find the changelog here: [CHANGELOG.md](CHANGELOG.md)
 
 ## Usage
 
-NOTE: Throughout this document you can use `bumpversion` or `bump2version` interchangeably.
+NOTE: Throughout this document you can use `bump4version` or `bv` interchangeably.
 
 There are two modes of operation: On the command line for single-file operation
 and using a configuration file (`.bumpversion.cfg`) for more complex multi-file operations.
 
-    bump2version [options] part [file]
+    bump4version [options] part [file]
 
 #### `part`
   _**required**_<br />
@@ -62,7 +57,7 @@ and using a configuration file (`.bumpversion.cfg`) for more complex multi-file 
 
   Example bumping 0.5.1 to 0.6.0:
 
-     bump2version --current-version 0.5.1 minor src/VERSION
+     bump4version --current-version 0.5.1 minor src/VERSION
 
 #### `file`
   _**[optional]**_<br />
@@ -76,12 +71,12 @@ and using a configuration file (`.bumpversion.cfg`) for more complex multi-file 
 
   Example bumping 1.1.9 to 2.0.0:
 
-     bump2version --current-version 1.1.9 major setup.py
+     bump4version --current-version 1.1.9 major setup.py
 
 ## Configuration file
 
 All options can optionally be specified in a config file called
-`.bumpversion.cfg` so that once you know how `bump2version` needs to be
+`.bumpversion.cfg` so that once you know how `bump4version` needs to be
 configured for one particular software package, you can run it without
 specifying options later. You should add that file to VCS so others can also
 bump versions.
@@ -101,7 +96,7 @@ tag = True
 [bumpversion:file:setup.py]
 ```
 
-If no `.bumpversion.cfg` exists, `bump2version` will also look into
+If no `.bumpversion.cfg` exists, `bump4version` will also look into
 `setup.cfg` for configuration.
 
 ### Configuration file -- Global configuration
@@ -114,7 +109,7 @@ General configuration is grouped in a `[bumpversion]` section.
 
   The current version of the software package before bumping.
 
-  Also available as `--current-version` (e.g. `bump2version --current-version 0.5.1 patch setup.py`)
+  Also available as `--current-version` (e.g. `bump4version --current-version 0.5.1 patch setup.py`)
 
 #### `new_version`
   _**[optional]**_<br />
@@ -124,7 +119,7 @@ General configuration is grouped in a `[bumpversion]` section.
   automatically determined.
 
   Also available as `--new-version` (e.g. `to go from 0.5.1 directly to
-  0.6.1`: `bump2version --current-version 0.5.1 --new-version 0.6.1 patch
+  0.6.1`: `bump4version --current-version 0.5.1 --new-version 0.6.1 patch
   setup.py`).
 
 #### `tag = (True | False)`
@@ -160,7 +155,7 @@ General configuration is grouped in a `[bumpversion]` section.
   datetime formatting (when used like as in `{now:%d.%m.%Y}`).
 
   Also available as command-line flag `tag-name`.  Example usage:
-  `bump2version --tag-name 'release-{new_version}' patch`
+  `bump4version --tag-name 'release-{new_version}' patch`
 
 #### `tag_message =`
   _**[optional]**_<br />
@@ -177,12 +172,12 @@ General configuration is grouped in a `[bumpversion]` section.
   datetime formatting (when used like as in `{now:%d.%m.%Y}`).
 
   Also available as command-line flag `--tag-message`.  Example usage:
-  `bump2version --tag-message 'Release {new_version}' patch`
+  `bump4version --tag-message 'Release {new_version}' patch`
 
-  `bump2version` creates an `annotated` tag in Git by default. To disable this and create a `lightweight` tag, you must explicitly set an empty `tag_message`:
+  `bump4version` creates an `annotated` tag in Git by default. To disable this and create a `lightweight` tag, you must explicitly set an empty `tag_message`:
 
   * either in the configuration file: `tag_message =`
-  * or in the command-line: `bump2version --tag-message ''`
+  * or in the command-line: `bump4version --tag-message ''`
 
   You can read more about Git tagging [here](https://git-scm.com/book/en/v2/Git-Basics-Tagging).
 
@@ -218,7 +213,7 @@ General configuration is grouped in a `[bumpversion]` section.
   datetime formatting (when used like as in `{now:%d.%m.%Y}`).
 
   Also available as command-line flag `--message`.  Example usage:
-  `bump2version --message '[{now:%Y-%m-%d}] Jenkins Build {$BUILD_NUMBER}: {new_version}' patch`)
+  `bump4version --message '[{now:%Y-%m-%d}] Jenkins Build {$BUILD_NUMBER}: {new_version}' patch`)
 
 #### `commit_args =`
   _**[optional]**_<br />
@@ -297,8 +292,8 @@ values =
   gamma
 ```
 
-  Here, `bump2version release` would bump `1.alpha` to `1.beta`. Executing
-  `bump2version release` again would bump `1.beta` to `1`, because
+  Here, `bump4version release` would bump `1.alpha` to `1.beta`. Executing
+  `bump4version release` again would bump `1.beta` to `1`, because
   `release` being `gamma` is configured optional.
 
   You should consider the version of `1` to technically be `1.gamma`
@@ -335,10 +330,10 @@ values =
 first_value = 1
 ```
 
-  Here, `bump2version release` would bump `1.alpha1` to `1.beta1`.
+  Here, `bump4version release` would bump `1.alpha1` to `1.beta1`.
 
   Without the `first_value = 1` of the build part configured,
-  `bump2version release` would bump `1.alpha1` to `1.beta0`, starting
+  `bump4version release` would bump `1.alpha1` to `1.beta0`, starting
   the build at `0`.
 
 
@@ -363,7 +358,7 @@ serialize = {major}.{minor}.{patch}-{build}
 independent = True
 ```
 
-  Here, `bump2version build` would bump `2.1.6-5123` to `2.1.6-5124`. Executing`bump2version major`
+  Here, `bump4version build` would bump `2.1.6-5123` to `2.1.6-5124`. Executing`bump4version major`
   would bump `2.1.6-5124` to `3.0.0-5124` without resetting the build number.
   
 
@@ -452,7 +447,7 @@ replace = MyProject=={new_version}
   Can be multiple lines, templated using [Python Format String Syntax](https://docs.python.org/3/library/string.html#format-string-syntax).
 
   **NOTE**: (*Updated in v1.0.1*) It is important to point out that if a
-  custom search pattern is configured, then `bump2version` will only perform
+  custom search pattern is configured, then `bump4version` will only perform
   a change if it finds an exact match and will not fallback to the default
   pattern. This is to prevent accidentally changing strings that match the
   default pattern when there is a typo in the custom search pattern.
@@ -489,7 +484,7 @@ Additionally, the following options are available:
   Will not update/check files specified in the .bumpversion.cfg.
   Similar to dry-run, but will also avoid checking the files.
   Also useful when you want to update just one file with e.g.,
-    `bump2version --no-configured-files major my-file.txt`
+    `bump4version --no-configured-files major my-file.txt`
 
 `--verbose`
   Print useful information to stderr
@@ -517,21 +512,21 @@ new version, before applying the change.
 
 The standard way to get it in a bash script is
 
-    bump2version --dry-run --list <part> | grep <field name> | sed -r s,"^.*=",,
+    bump4version --dry-run --list <part> | grep <field name> | sed -r s,"^.*=",,
 
 where `part` is as usual the part of the version number you are updating. You need to specify
 `--dry-run` to avoid bumpversion actually bumping the version number.
 
 For example, if you are updating the minor number and looking for the new version number this becomes
 
-    bump2version --dry-run --list minor | grep new_version | sed -r s,"^.*=",,
+    bump4version --dry-run --list minor | grep new_version | sed -r s,"^.*=",,
 
 ## Using bumpversion to maintain a go.mod file within a Go project
 
 In a module-aware Go project, when you create a major version of your module beyond v1, your module name will need
 to include the major version # (e.g. `github.com/myorg/myproject/v2`).
 
-You can use bump2version to maintain the major version # within the go.mod file by using the `parse` and `serialize`
+You can use bump4version to maintain the major version # within the go.mod file by using the `parse` and `serialize`
 options, as in this example:
 
 - Example `.bumpversion.cfg` file:
@@ -563,7 +558,7 @@ options, as in this example:
 Then run this command to create version 3.0.0 of your project:
 
 ```
-    bump2version --new-version 3.0.0 major
+    bump4version --new-version 3.0.0 major
 ```
 Your `go.mod` file now contains this module directive:
 
@@ -573,7 +568,7 @@ Your `go.mod` file now contains this module directive:
 
 ## Development & Contributing
 
-Thank you contributors! You can find a full list here: https://github.com/c4urself/bump2version/graphs/contributors
+Thank you contributors! You can find a full list here: https://github.com/olutra/bump4version/graphs/contributors
 
 See also our [CONTRIBUTING.md](CONTRIBUTING.md)
 
@@ -584,4 +579,4 @@ workflow, as it is intended to be very versatile.
 
 ## License
 
-bump2version is licensed under the MIT License - see the [LICENSE.rst](LICENSE.rst) file for details
+bump4version is licensed under the MIT License - see the [LICENSE.rst](LICENSE.rst) file for details

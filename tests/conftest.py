@@ -6,10 +6,25 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def subprocess_env():
-    env = os.environ.copy()
-    env["HGENCODING"] = "utf-8"
-    return env
+def vcs_username():
+    return "Your Name"
+
+
+@pytest.fixture(scope="session")
+def vcs_email():
+    return "mail@localhost"
+
+
+@pytest.fixture(scope="session")
+def subprocess_env(vcs_email, vcs_username):
+    with pytest.MonkeyPatch.context() as context:
+        context.setenv("GIT_AUTHOR_NAME", vcs_username)
+        context.setenv("GIT_AUTHOR_EMAIL", vcs_email)
+        context.setenv("GIT_COMMITTER_NAME", vcs_username)
+        context.setenv("GIT_COMMITTER_EMAIL", vcs_email)
+        env = os.environ.copy()
+        env["HGENCODING"] = "utf-8"
+        yield env
 
 
 @pytest.fixture(scope="session")
@@ -39,22 +54,20 @@ class VCS:
 
 @pytest.fixture(scope="session")
 def check_vcs_presence(call):
-    def checker(vcs: str) -> None:
+    def checker(vcs: str) -> str:
         if call(f"{vcs} version") != 0:
-            pytest.xfail(reason=f"{vcs} is not installed.", run=False)
+            pytest.xfail(reason=f"{vcs} is not installed.")
+        return vcs
     return checker
 
 
 @pytest.fixture(scope="session", params=[VCS.GIT, VCS.MERCURIAL])
 def vcs(request, check_vcs_presence):
     """Return all supported VCS systems (git, hg)."""
-    vcs = request.param
-    check_vcs_presence(vcs=vcs)
-    return vcs
+    return check_vcs_presence(vcs=request.param)
 
 
 @pytest.fixture(scope="session")
 def git(check_vcs_presence):
     """Return git as VCS (not hg)."""
-    check_vcs_presence(vcs=VCS.GIT)
-    return VCS.GIT
+    return check_vcs_presence(vcs=VCS.GIT)
