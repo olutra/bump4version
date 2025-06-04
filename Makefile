@@ -1,4 +1,4 @@
-IMAGE_TAG = localhost/bump3version_test
+IMAGE_TAG = localhost/bump4version_test
 
 test:
 	docker build -t ${IMAGE_TAG} .

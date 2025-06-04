@@ -3,14 +3,14 @@ import re
 import string
 from typing import Dict, Iterable, Optional, Type, Union
 
-from bumpversion.exceptions import (
+from .exceptions import (
     IncompleteVersionRepresentationException,
     InvalidVersionPartException,
     MissingValueForSerializationException,
     VersionConfigInitializationException,
 )
-from bumpversion.functions import NumericFunction, ValuesFunction
-from bumpversion.utils import keyvaluestring
+from .functions import NumericFunction, ValuesFunction
+from .utils import keyvaluestring
 
 
 logger = logging.getLogger(__name__)
@@ -152,7 +152,7 @@ class VersionPart:
         return self.value
 
     def __repr__(self):
-        return "<bumpversion.VersionPart:{}:{}>".format(self.config.__class__.__name__, self.value)
+        return "<bump4version.VersionPart:{}:{}>".format(self.config.__class__.__name__, self.value)
 
     def __eq__(self, other):
         return self.value == other.value
@@ -176,7 +176,7 @@ class Version:
         return self._values.items()
 
     def __repr__(self):
-        return "<bumpversion.Version:{}>".format(keyvaluestring(self._values))
+        return "<bump4version.Version:{}>".format(keyvaluestring(self._values))
 
     def bump(self, part_name: str, order: Iterable[str]) -> "Version":
         bumped = False

@@ -1,6 +1,6 @@
 import pytest
 
-from bumpversion.version_part import (
+from bump4version.version_part import (
     ConfiguredVersionPartConfiguration,
     NumericVersionPartConfiguration,
     VersionPart,

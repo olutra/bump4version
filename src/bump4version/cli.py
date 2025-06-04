@@ -3,7 +3,6 @@ import glob
 import io
 import itertools
 import logging
-import os
 import re
 import sys
 import warnings
@@ -15,22 +14,23 @@ from configparser import (
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
+from pathlib import Path
 
-from bumpversion import __title__, __version__
-from bumpversion.exceptions import (
+from . import __title__, __version__
+from .exceptions import (
     IncompleteVersionRepresentationException,
     MissingValueForSerializationException,
     WorkingDirectoryIsDirtyException,
     VersionConfigInitializationException,
 )
-from bumpversion.utils import (
+from .utils import (
     ConfiguredFile,
     DiscardDefaultIfSpecifiedAppendAction,
     keyvaluestring,
     prefixed_environ,
 )
-from bumpversion.vcs import Git, Mercurial
-from bumpversion.version_part import (
+from .vcs import Git, Mercurial
+from .version_part import (
     ConfiguredVersionPartConfiguration,
     NumericVersionPartConfiguration,
     VCSBranchPartConfiguration,
@@ -56,9 +56,9 @@ RE_DETECT_SECTION_TYPE = re.compile(
     r"(?P<value>.+)",
 )
 
-BUMP3VERSION_VCS_BRANCH_NAME = "BUMP3VERSION_VCS_BRANCH_NAME"
+_BUMP4VERSION_VCS_BRANCH_NAME = "BUMP4VERSION_VCS_BRANCH_NAME"
 
-logger_list = logging.getLogger("bumpversion.list")
+logger_list = logging.getLogger("bump4version.list")
 logger = logging.getLogger(__name__)
 time_context = {"now": datetime.now(), "utcnow": datetime.utcnow()}
 special_char_context = {c: c for c in ("#", ";")}
@@ -244,7 +244,7 @@ def _determine_vcs_usability():
 
             # ToDo: make without exception
             with suppress(NotImplementedError):
-                vcs_info[BUMP3VERSION_VCS_BRANCH_NAME] = vcs.get_branch_name()
+                vcs_info[_BUMP4VERSION_VCS_BRANCH_NAME] = vcs.get_branch_name()
     return vcs_info
 
 
@@ -258,21 +258,31 @@ def _determine_current_version(vcs_info):
 def _determine_config_file(explicit_config):
     if explicit_config:
         return explicit_config
-    if not os.path.exists(".bumpversion.cfg") and os.path.exists("setup.cfg"):
-        return "setup.cfg"
-    return ".bumpversion.cfg"
+
+    bump4version_cfg_path = Path(".bump4version.cfg")
+    bumpversion_cfg_path = Path(".bumpversion.cfg")
+    setup_cfg_path = Path("setup.cfg")
+
+    if not bump4version_cfg_path.exists() and not bumpversion_cfg_path.exists() and setup_cfg_path.exists():
+        cfg_path = setup_cfg_path
+    elif bump4version_cfg_path.exists():
+        cfg_path = bump4version_cfg_path
+    else:
+        cfg_path = bumpversion_cfg_path
+
+    return cfg_path.name
 
 
 def _load_configuration(config_file, explicit_config, defaults, vcs_info):
     # setup.cfg supports interpolation - for compatibility we must do the same.
-    if os.path.basename(config_file) == "setup.cfg":
+    if Path(config_file).name == "setup.cfg":
         config = ConfigParser("")
     else:
         config = RawConfigParser("")
     # don't transform keys to lowercase (which would be the default)
     config.optionxform = lambda option: option
     config.add_section("bumpversion")
-    config_file_exists = os.path.exists(config_file)
+    config_file_exists = Path(config_file).exists()
 
     if not config_file_exists:
         message = "Could not read config file at {}".format(config_file)
@@ -340,7 +350,7 @@ def _load_configuration(config_file, explicit_config, defaults, vcs_info):
                 if _type == "branch":
                     ThisVersionPartConfiguration = partial(
                         VCSBranchPartConfiguration,
-                        current_branch=vcs_info.get(BUMP3VERSION_VCS_BRANCH_NAME),
+                        current_branch=vcs_info.get(_BUMP4VERSION_VCS_BRANCH_NAME),
                     )
             elif "values" in section_config:
                 section_config["values"] = list(
@@ -402,7 +412,7 @@ def _load_configuration(config_file, explicit_config, defaults, vcs_info):
 
 def _parse_arguments_phase_2(args, known_args, defaults, root_parser):
     parser2 = argparse.ArgumentParser(
-        prog="bumpversion", add_help=False, parents=[root_parser]
+        prog="bump4version", add_help=False, parents=[root_parser]
     )
     parser2.set_defaults(**defaults)
     parser2.add_argument(
@@ -483,7 +493,7 @@ def _assemble_new_version(
 
 def _parse_arguments_phase_3(remaining_argv, positionals, defaults, parser2):
     parser3 = argparse.ArgumentParser(
-        prog="bumpversion",
+        prog="bump4version",
         description=DESCRIPTION,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         conflict_handler="resolve",

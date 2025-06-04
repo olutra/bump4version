@@ -6,7 +6,7 @@ from abc import ABC
 from tempfile import NamedTemporaryFile
 from typing import List
 
-from bumpversion.exceptions import (
+from .exceptions import (
     MercurialDoesNotSupportSignedTagsException,
     WorkingDirectoryIsDirtyException,
 )
@@ -139,14 +139,24 @@ class Git(BaseVCS):
 
     @classmethod
     def add_path(cls, path):
-        subprocess.check_output(["git", "add", "--update", path])
+        # From version 2.45 git throws an error when running `git add --update <file>` with an untracked file.
+        # Previous versions just ignored the file.
+        # Example: b"error: pathspec '.bump4version.cfg' did not match any file(s) known to git\n"
+        # Temporary fix that makes new versions of git act like old ones is to ignore the message.
+        # Proper fix would be to break here with an informative error message.
+        try:
+            subprocess.check_output(["git", "add", "--update", path], stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            if e.output == f"error: pathspec '{path}' did not match any file(s) known to git\n".encode():
+                return
+            raise e
 
     @classmethod
     def tag(cls, sign, name, message):
         """
         Create a tag of the new_version in VCS.
 
-        If only name is given, bumpversion uses a lightweight tag.
+        If only name is given, bump4version uses a lightweight tag.
         Otherwise, it utilizes an annotated tag.
         """
         command = ["git", "tag", name]

@@ -4,8 +4,8 @@
 *
 
 !tests
-!bumpversion
+!src/bump4version
 !tox.ini
-!setup*
+!pyproject.toml
 !README.md
 !noxfile.py
